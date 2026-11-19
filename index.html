@@ -69,7 +69,7 @@ footer{text-align:center;color:var(--mute);padding:0 16px 40px;font-size:15px}
 <main>
 <section class="card">
   <h2>১. পাঠ্যবই বা অধ্যায় দিন</h2>
-  <div class="drop" id="drop" tabindex="0"><b>পিডিএফ এখানে টেনে আনুন বা ক্লিক করুন</b><small id="fname">এনসিটিবি বই থেকে কেটে নেওয়া অধ্যায়ের পিডিএফ (সর্বোচ্চ ১৫ এমবি)। স্ক্যান করা বা বিজয় ফন্টের পিডিএফও চলবে।</small></div>
+  <div class="drop" id="drop" tabindex="0"><b>পিডিএফ এখানে টেনে আনুন বা ক্লিক করুন</b><small id="fname">এনসিটিবি বই থেকে কেটে নেওয়া অধ্যায়ের পিডিএফ (সর্বোচ্চ ৮ এমবি)। স্ক্যান করা বা বিজয় ফন্টের পিডিএফও চলবে।</small></div>
   <input type="file" id="file" accept="application/pdf" hidden>
   <div style="margin-top:14px"><details><summary>পিডিএফ না থাকলে লেখা পেস্ট করুন</summary><textarea id="txt" placeholder="অধ্যায়ের লেখা এখানে পেস্ট করুন..." style="margin-top:10px"></textarea></details></div>
 </section>
@@ -82,6 +82,7 @@ footer{text-align:center;color:var(--mute);padding:0 16px 40px;font-size:15px}
     <div><label for="subj">বিষয়</label><input id="subj" placeholder="যেমন: বাংলাদেশ ও বিশ্বপরিচয়"></div>
     <div><label for="exam">পরীক্ষার নাম</label><input id="exam" placeholder="যেমন: দ্বিতীয় সাময়িক পরীক্ষা"></div>
     <div><label for="time">সময়</label><input id="time" value="২ ঘণ্টা"></div>
+    <div><label for="marks">পূর্ণমান</label><input id="marks" value="৫০"></div>
   </div>
   <p style="margin:16px 0 4px;font-weight:600">কঠিনতার ভাগ (সব বিভাগেই মানা হবে)</p>
   <div class="mix"><span class="pill p-e">একেবারে সহজ ৪০%</span><span class="pill p-n">মাঝারি ৪০%</span><span class="pill p-h">সর্বোচ্চ কঠিন ২০%</span></div>
@@ -97,6 +98,7 @@ footer{text-align:center;color:var(--mute);padding:0 16px 40px;font-size:15px}
 <section id="out" hidden>
   <div class="tools">
     <button class="btn alt" onclick="window.print()">🖨️ প্রিন্ট / পিডিএফ</button>
+    <button class="btn alt" id="word">📄 Word ফাইল</button>
     <button class="btn ghost" id="tog">উত্তরমালা দেখান</button>
     <button class="btn ghost" id="regen">🔄 আবার বানাও</button>
   </div>
@@ -121,7 +123,7 @@ drop.addEventListener('drop',e=>readPdf(e.dataTransfer.files[0]));
 file.onchange=()=>readPdf(file.files[0]);
 function readPdf(f){
   if(!f||f.type!=='application/pdf')return say('শুধু পিডিএফ ফাইল দিন।',1);
-  if(f.size>15*1048576)return say('ফাইল ১৫ এমবির বেশি। অধ্যায় আরও ছোট করে কেটে নিন।',1);
+  if(f.size>8*1048576)return say('ফাইল ৮ এমবির বেশি। অধ্যায় আরও ছোট করে কেটে নিন।',1);
   const r=new FileReader();
   r.onload=()=>{pdfB64=r.result.split(',')[1];$('fname').textContent='✔ '+f.name+' ('+bn((f.size/1048576).toFixed(1))+' এমবি) প্রস্তুত';say('')};
   r.readAsDataURL(f);
@@ -149,9 +151,10 @@ const tag=l=>LV[l]?`<span class="tag ${LV[l][1]}">${LV[l][0]}</span>`:'';
 const K=['ক','খ','গ','ঘ'];
 
 function render(d){
+  window.lastData=d;
   let n,h=`<div class="ph"><h3>${esc($('school').value||'বিদ্যালয়ের নাম')}</h3>
   <div>${esc($('exam').value||'পরীক্ষা')} • শ্রেণি: ${esc($('cls').value)} • বিষয়: ${esc($('subj').value||'')}</div>
-  <div class="meta"><span>সময়: ${esc($('time').value)}</span><span>পূর্ণমান: ${bn(10+5+5+5+5+5)+' + বর্ণনামূলক'}</span></div></div>`;
+  <div class="meta"><span>সময়: ${esc($('time').value)}</span><span>পূর্ণমান: ${esc($('marks').value)}</span></div></div>`;
   const sec=(t,note,body)=>`<div class="sec"><h4>${t} <span class="note">${note}</span></h4>${body}</div>`;
   h+=sec('ক. সঠিক উত্তরটি বাছাই করো','(প্রতিটি ১ নম্বর)',(d.mcq||[]).map((x,i)=>`<div class="q"><span class="n">${bn(i+1)}.</span><div>${esc(x.q)}${tag(x.level)}<div class="opts">${x.options.map((o,j)=>`<span>${K[j]}) ${esc(o)}</span>`).join('')}</div><div class="ans">উত্তর: ${K[x.answer]}) ${esc(x.options[x.answer])}</div></div></div>`).join(''));
   h+=sec('খ. শূন্যস্থান পূরণ করো','',(d.blanks||[]).map((x,i)=>`<div class="q"><span class="n">${bn(i+1)}.</span><div>${esc(x.q)}${tag(x.level)}<div class="ans">উত্তর: ${esc(x.answer)}</div></div></div>`).join(''));
@@ -163,6 +166,31 @@ function render(d){
   h+=sec('চ. নিচের প্রশ্নগুলোর উত্তর লেখো','<span class="must">যেকোনো ৫টি</span>',wr(d.long));
   $('paper').innerHTML=h;
 }
+
+function wordHtml(d,ans){
+  const K=['ক','খ','গ','ঘ'],P=x=>`<p>${x}</p>`;
+  let h=`<h2 style="text-align:center">${esc($('school').value)}</h2><p style="text-align:center">${esc($('exam').value)} • শ্রেণি: ${esc($('cls').value)} • বিষয়: ${esc($('subj').value)}<br>সময়: ${esc($('time').value)} &nbsp;&nbsp; পূর্ণমান: ${esc($('marks').value)}</p><hr>`,k='';
+  const T=(t,lbl)=>{h+=`<h3>${t}</h3>`;k+=`<h4>${lbl}</h4>`};
+  T('ক. সঠিক উত্তরটি বাছাই করো (প্রতিটি ১ নম্বর)','ক');
+  (d.mcq||[]).forEach((x,i)=>{h+=P(`${bn(i+1)}. ${esc(x.q)}<br>`+x.options.map((o,j)=>`${K[j]}) ${esc(o)}`).join(' &nbsp;&nbsp; '));k+=P(`${bn(i+1)}. ${K[x.answer]}) ${esc(x.options[x.answer])}`)});
+  T('খ. শূন্যস্থান পূরণ করো','খ');
+  (d.blanks||[]).forEach((x,i)=>{h+=P(`${bn(i+1)}. ${esc(x.q)}`);k+=P(`${bn(i+1)}. ${esc(x.answer)}`)});
+  const m=d.matching||{left:[],right:[],answer:[]};
+  T('গ. মিল করো','গ');
+  h+='<table>'+m.left.map((x,i)=>`<tr><td>${bn(i+1)}. ${esc(x)}</td><td>${K[i]||bn(i+1)}. ${esc(m.right[i])}</td></tr>`).join('')+'</table>';
+  k+=P(m.answer.map((a,i)=>bn(i+1)+'→'+(K[a]||bn(a+1))).join(', '));
+  T('ঘ. সত্য হলে "স" এবং মিথ্যা হলে "মি" লেখো','ঘ');
+  (d.tf||[]).forEach((x,i)=>{h+=P(`${bn(i+1)}. ${esc(x.q)}`);k+=P(`${bn(i+1)}. ${x.answer===true||x.answer==='true'?'সত্য':'মিথ্যা'}`)});
+  T('ঙ. সংক্ষিপ্ত প্রশ্নের উত্তর দাও (যেকোনো ৫টি)','ঙ');
+  (d.short||[]).forEach((x,i)=>{h+=P(`${bn(i+1)}. ${esc(x.q)}`);k+=P(`${bn(i+1)}. ${esc(x.answer)}`)});
+  T('চ. নিচের প্রশ্নগুলোর উত্তর লেখো (যেকোনো ৫টি)','চ');
+  (d.long||[]).forEach((x,i)=>{h+=P(`${bn(i+1)}. ${esc(x.q)}`);k+=P(`${bn(i+1)}. ${esc(x.answer)}`)});
+  return ans?h+'<br style="page-break-before:always"><h2>উত্তরমালা</h2>'+k:h;
+}
+$('word').onclick=()=>{
+  const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>body{font-family:'Nirmala UI',Vrinda,sans-serif;font-size:13pt}td{padding:3pt 30pt 3pt 0}</style></head><body>${wordHtml(window.lastData,$('paper').classList.contains('show-ans'))}</body></html>`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff',html],{type:'application/msword'}));a.download='proshnopotro.doc';a.click();
+};
 </script>
 </body>
 </html>
