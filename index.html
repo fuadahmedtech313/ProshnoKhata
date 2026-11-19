@@ -106,6 +106,7 @@ footer{text-align:center;color:var(--mute);padding:0 16px 40px;font-size:15px}
 <footer>শিক্ষকের জন্য, শিক্ষকের তৈরি। এআই-এর বানানো প্রশ্ন ছাপার আগে একবার দেখে নিন।</footer>
 
 <script>
+const $=id=>document.getElementById(id);
 const bn=n=>String(n).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const WORKER_URL='https://proshnokhata.fuadahmedofficial1.workers.dev/';
