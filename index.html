@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>প্রশ্নখাতা — এআই দিয়ে দ্রুত প্রশ্নপত্র তৈরি</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Galada&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c2f8a;--ink2:#e8edff;--pencil:#f7c63d;--margin:#e04b3a;--paper:#fff;--bg:#f3f6ff;--text:#1d2340;--mute:#5d6590;--line:#cdd7f5;--ok:#1f8f5f}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Hind Siliguri',sans-serif;background:var(--bg);color:var(--text);line-height:1.7;font-size:17px}
+header{background:var(--ink);color:#fff;padding:40px 20px 70px;text-align:center;position:relative;overflow:hidden}
+header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;background:var(--bg);clip-path:ellipse(60% 100% at 50% 100%)}
+.logo{font-family:'Galada',cursive;font-size:clamp(40px,8vw,68px);margin:0;line-height:1.2}
+.logo span{background:var(--pencil);color:var(--ink);padding:0 14px;border-radius:6px;transform:rotate(-2deg);display:inline-block;margin-left:6px}
+header p{max-width:620px;margin:12px auto 0;font-size:19px;opacity:.92}
+main{max-width:980px;margin:-14px auto 60px;padding:0 16px}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:24px;margin-bottom:22px}
+h2{margin:0 0 14px;font-size:22px;color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+label{display:block;font-weight:600;font-size:15px;margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:#fff;color:var(--text)}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid var(--pencil);border-color:var(--ink)}
+textarea{min-height:120px;resize:vertical}
+.drop{border:3px dashed var(--ink);border-radius:16px;padding:28px;text-align:center;background:var(--ink2);cursor:pointer;transition:.2s}
+.drop.on,.drop:hover{background:#dbe3ff}
+.drop b{font-size:20px;color:var(--ink)}
+.drop small{display:block;color:var(--mute)}
+.btn{font:inherit;font-weight:700;font-size:19px;background:var(--ink);color:#fff;border:0;border-radius:12px;padding:13px 26px;cursor:pointer;box-shadow:0 5px 0 #0f1c57}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #0f1c57}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn.alt{background:var(--pencil);color:var(--ink);box-shadow:0 5px 0 #b98f12;font-size:16px;padding:9px 18px}
+.btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--ink);box-shadow:none;font-size:16px;padding:8px 16px}
+.mix{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.pill{padding:4px 14px;border-radius:99px;font-size:14px;font-weight:600}
+.p-e{background:#dff5e8;color:#145c3b}.p-n{background:#fff1c6;color:#6d5200}.p-h{background:#ffe0dc;color:#9c2314}
+.status{margin-top:14px;font-weight:600;color:var(--ink)}
+.err{color:#b3261e}
+details summary{cursor:pointer;font-weight:600;color:var(--ink)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+/* question paper */
+.paper{background:#fff;border:2px solid var(--line);border-radius:6px;padding:30px 36px 30px 64px;position:relative;background-image:repeating-linear-gradient(transparent 0 33px,#e3e9fb 33px 34px);background-position:0 8px}
+.paper::before{content:"";position:absolute;left:44px;top:0;bottom:0;width:2px;background:var(--margin);opacity:.6}
+.ph{text-align:center;border-bottom:2px solid var(--ink);margin-bottom:18px;padding-bottom:8px;background:#fff}
+.ph h3{margin:0;font-size:24px}
+.ph .meta{display:flex;justify-content:space-between;flex-wrap:wrap;font-weight:600;font-size:15px}
+.sec{margin-top:22px}
+.sec h4{margin:0 0 6px;font-size:19px;background:#fff;display:inline-block;padding-right:10px;color:var(--ink)}
+.sec .note{font-weight:500;color:var(--mute);font-size:15px}
+.q{margin:0 0 8px;display:flex;gap:8px}
+.q .n{min-width:26px;font-weight:700}
+.q .opts{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;margin-top:2px}
+.tag{font-size:11px;padding:0 8px;border-radius:99px;font-weight:700;margin-left:6px;vertical-align:middle;white-space:nowrap}
+.mt{display:grid;grid-template-columns:1fr 1fr;gap:6px 50px;background:#fff;padding:8px;max-width:640px}
+.ans{display:none;color:var(--ok);font-weight:600;font-size:15px}
+.show-ans .ans{display:block}
+.must{display:inline-block;background:#fff;border:1.5px solid var(--ink);border-radius:6px;padding:0 8px;font-size:14px;margin-left:8px}
+footer{text-align:center;color:var(--mute);padding:0 16px 40px;font-size:15px}
+@media(max-width:640px){.paper{padding:20px 14px 20px 36px}.paper::before{left:24px}.q .opts,.mt{grid-template-columns:1fr}}
+@media print{body{background:#fff}header,.card,.tools,footer{display:none}main{margin:0;max-width:none;padding:0}.paper{border:0;padding:0 0 0 20px;background:none}.paper::before{display:none}.tag{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <h1 class="logo">প্রশ্ন<span>খাতা</span></h1>
+  <p>বইয়ের পিডিএফ দিন, এক ক্লিকেই পাবেন ৩য়–৫ম শ্রেণির জন্য সম্পূর্ণ প্রশ্নপত্র ও উত্তরমালা।</p>
+</header>
+<main>
+<section class="card">
+  <h2>১. পাঠ্যবই বা অধ্যায় দিন</h2>
+  <div class="drop" id="drop" tabindex="0"><b>পিডিএফ এখানে টেনে আনুন বা ক্লিক করুন</b><small id="fname">এনসিটিবি বই থেকে কেটে নেওয়া অধ্যায়ের পিডিএফ (সর্বোচ্চ ১৫ এমবি)। স্ক্যান করা বা বিজয় ফন্টের পিডিএফও চলবে।</small></div>
+  <input type="file" id="file" accept="application/pdf" hidden>
+  <div style="margin-top:14px"><details><summary>পিডিএফ না থাকলে লেখা পেস্ট করুন</summary><textarea id="txt" placeholder="অধ্যায়ের লেখা এখানে পেস্ট করুন..." style="margin-top:10px"></textarea></details></div>
+</section>
+
+<section class="card">
+  <h2>২. প্রশ্নপত্রের তথ্য</h2>
+  <div class="grid">
+    <div><label for="school">বিদ্যালয়ের নাম</label><input id="school" placeholder="যেমন: ফুলতলা সরকারি প্রাথমিক বিদ্যালয়"></div>
+    <div><label for="cls">শ্রেণি</label><select id="cls"><option>তৃতীয়</option><option>চতুর্থ</option><option selected>পঞ্চম</option></select></div>
+    <div><label for="subj">বিষয়</label><input id="subj" placeholder="যেমন: বাংলাদেশ ও বিশ্বপরিচয়"></div>
+    <div><label for="exam">পরীক্ষার নাম</label><input id="exam" placeholder="যেমন: দ্বিতীয় সাময়িক পরীক্ষা"></div>
+    <div><label for="time">সময়</label><input id="time" value="২ ঘণ্টা"></div>
+  </div>
+  <p style="margin:16px 0 4px;font-weight:600">কঠিনতার ভাগ (সব বিভাগেই মানা হবে)</p>
+  <div class="mix"><span class="pill p-e">একেবারে সহজ ৪০%</span><span class="pill p-n">মাঝারি ৪০%</span><span class="pill p-h">সর্বোচ্চ কঠিন ২০%</span></div>
+</section>
+
+<section class="card">
+  <h2>৩. প্রশ্ন বানান</h2>
+  <div class="grid" style="max-width:320px"><div><label for="code">শিক্ষক কোড (দিলে একবারই লাগবে)</label><input id="code" type="password" placeholder="কোড থাকলে লিখুন"></div></div>
+  <p style="margin-top:18px"><button class="btn" id="go">✏️ প্রশ্নপত্র বানাও</button></p>
+  <div class="status" id="status" role="status"></div>
+</section>
+
+<section id="out" hidden>
+  <div class="tools">
+    <button class="btn alt" onclick="window.print()">🖨️ প্রিন্ট / পিডিএফ</button>
+    <button class="btn ghost" id="tog">উত্তরমালা দেখান</button>
+    <button class="btn ghost" id="regen">🔄 আবার বানাও</button>
+  </div>
+  <div class="paper" id="paper"></div>
+</section>
+</main>
+<footer>শিক্ষকের জন্য, শিক্ষকের তৈরি। এআই-এর বানানো প্রশ্ন ছাপার আগে একবার দেখে নিন।</footer>
+
+<script>
+const bn=n=>String(n).replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const WORKER_URL='PASTE_WORKER_URL_HERE';
+let pdfB64=null;
+try{$('code').value=localStorage.getItem('qc')||''}catch(e){}
+const drop=$('drop'),file=$('file');
+drop.onclick=()=>file.click();
+drop.onkeydown=e=>{if(e.key==='Enter')file.click()};
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('on')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('on')}));
+drop.addEventListener('drop',e=>readPdf(e.dataTransfer.files[0]));
+file.onchange=()=>readPdf(file.files[0]);
+function readPdf(f){
+  if(!f||f.type!=='application/pdf')return say('শুধু পিডিএফ ফাইল দিন।',1);
+  if(f.size>15*1048576)return say('ফাইল ১৫ এমবির বেশি। অধ্যায় আরও ছোট করে কেটে নিন।',1);
+  const r=new FileReader();
+  r.onload=()=>{pdfB64=r.result.split(',')[1];$('fname').textContent='✔ '+f.name+' ('+bn((f.size/1048576).toFixed(1))+' এমবি) প্রস্তুত';say('')};
+  r.readAsDataURL(f);
+}
+function say(m,bad){const s=$('status');s.textContent=m;s.className='status'+(bad?' err':'')}
+async function generate(){
+  const text=$('txt').value.trim(),code=$('code').value.trim();
+  if(!pdfB64&&text.length<50)return say('আগে অধ্যায়ের পিডিএফ দিন।',1);
+  try{localStorage.setItem('qc',code)}catch(e){}
+  $('go').disabled=true;say('প্রশ্ন বানানো হচ্ছে... ২০–৬০ সেকেন্ড অপেক্ষা করুন।');
+  try{
+    const r=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cls:$('cls').value,subj:$('subj').value,pdf:pdfB64,text:pdfB64?'':text,code})});
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||'অনুরোধ ব্যর্থ');
+    render(JSON.parse(d.text.replace(/```json|```/g,'').trim()));say('');
+    $('out').hidden=false;$('out').scrollIntoView({behavior:'smooth'});
+  }catch(e){say('সমস্যা: '+e.message+'। একটু পরে আবার চেষ্টা করুন।',1)}
+  $('go').disabled=false;
+}
+$('go').onclick=generate;$('regen').onclick=generate;
+$('tog').onclick=()=>{const p=$('paper');p.classList.toggle('show-ans');$('tog').textContent=p.classList.contains('show-ans')?'উত্তরমালা লুকান':'উত্তরমালা দেখান'};
+
+const LV={easy:['সহজ','p-e'],normal:['মাঝারি','p-n'],hard:['কঠিন','p-h']};
+const tag=l=>LV[l]?`<span class="tag ${LV[l][1]}">${LV[l][0]}</span>`:'';
+const K=['ক','খ','গ','ঘ'];
+
+function render(d){
+  let n,h=`<div class="ph"><h3>${esc($('school').value||'বিদ্যালয়ের নাম')}</h3>
+  <div>${esc($('exam').value||'পরীক্ষা')} • শ্রেণি: ${esc($('cls').value)} • বিষয়: ${esc($('subj').value||'')}</div>
+  <div class="meta"><span>সময়: ${esc($('time').value)}</span><span>পূর্ণমান: ${bn(10+5+5+5+5+5)+' + বর্ণনামূলক'}</span></div></div>`;
+  const sec=(t,note,body)=>`<div class="sec"><h4>${t} <span class="note">${note}</span></h4>${body}</div>`;
+  h+=sec('ক. সঠিক উত্তরটি বাছাই করো','(প্রতিটি ১ নম্বর)',(d.mcq||[]).map((x,i)=>`<div class="q"><span class="n">${bn(i+1)}.</span><div>${esc(x.q)}${tag(x.level)}<div class="opts">${x.options.map((o,j)=>`<span>${K[j]}) ${esc(o)}</span>`).join('')}</div><div class="ans">উত্তর: ${K[x.answer]}) ${esc(x.options[x.answer])}</div></div></div>`).join(''));
+  h+=sec('খ. শূন্যস্থান পূরণ করো','',(d.blanks||[]).map((x,i)=>`<div class="q"><span class="n">${bn(i+1)}.</span><div>${esc(x.q)}${tag(x.level)}<div class="ans">উত্তর: ${esc(x.answer)}</div></div></div>`).join(''));
+  const m=d.matching||{left:[],right:[],answer:[]};
+  h+=sec('গ. মিল করো','',`<div class="mt"><div>${m.left.map((x,i)=>`<div>${bn(i+1)}. ${esc(x)}</div>`).join('')}</div><div>${m.right.map((x,i)=>`<div>${K[i]||bn(i+1)}. ${esc(x)}</div>`).join('')}</div></div><div class="ans">উত্তর: ${m.answer.map((a,i)=>bn(i+1)+'→'+(K[a]||bn(a+1))).join(', ')}</div>`);
+  h+=sec('ঘ. সত্য হলে "স" এবং মিথ্যা হলে "মি" লেখো','',(d.tf||[]).map((x,i)=>`<div class="q"><span class="n">${bn(i+1)}.</span><div>${esc(x.q)}${tag(x.level)}<div class="ans">উত্তর: ${x.answer===true||x.answer==='true'?'সত্য':'মিথ্যা'}</div></div></div>`).join(''));
+  const wr=(a,k)=>(a||[]).map((x,i)=>`<div class="q"><span class="n">${bn(i+1)}.</span><div>${esc(x.q)}${tag(x.level)}<div class="ans">উত্তর: ${esc(x.answer)}</div></div></div>`).join('');
+  h+=sec('ঙ. সংক্ষিপ্ত প্রশ্নের উত্তর দাও','<span class="must">যেকোনো ৫টি</span>',wr(d.short));
+  h+=sec('চ. নিচের প্রশ্নগুলোর উত্তর লেখো','<span class="must">যেকোনো ৫টি</span>',wr(d.long));
+  $('paper').innerHTML=h;
+}
+</script>
+</body>
+</html>
